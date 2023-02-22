@@ -1,6 +1,6 @@
 import {h, Component, VNode} from 'preact';
 import {Props} from './types';
-import DiscoverPane from './DiscoverPane';
+import DiscoverPane from './DiscoverPane1';
 
 export default class HomeScreen extends Component<{globalState: {state: any}}> {
 	public render({globalState}: Props<{globalState: {state: any}}>): VNode {

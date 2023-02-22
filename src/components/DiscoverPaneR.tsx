@@ -6,7 +6,51 @@ import AddFriends from './AddFriends';
 import Logout from './Logout';
 import { useAuthentication } from './authentication';
 import { loadData, MediaData, getIds, search } from '../media';
-import { getSolidDataset, deleteSolidDataset, SolidDataset, WithAcl, WithServerResourceInfo, WithAccessibleAcl, getContainedResourceUrlAll, getUrl, getStringNoLocaleAll, hasResourceAcl, getUrlAll, getThing, getThingAll, setGroupDefaultAccess, setGroupResourceAccess, getSolidDatasetWithAcl, createAcl, saveAclFor, setAgentDefaultAccess, setAgentResourceAccess, removeThing, createThing, saveSolidDatasetAt, setUrl, setDatetime, setThing, setInteger, asUrl, getInteger, createSolidDataset, createContainerAt, addUrl, removeUrl, getResourceAcl, setStringNoLocale, addStringNoLocale, getPublicResourceAccess, getPublicAccess, setPublicDefaultAccess, setPublicResourceAccess, getGroupAccess } from '@inrupt/solid-client';
+import {
+	getSolidDataset,
+	deleteSolidDataset,
+	SolidDataset,
+	WithAcl,
+	WithServerResourceInfo,
+	WithAccessibleAcl,
+	getContainedResourceUrlAll,
+	getUrl,
+	getStringNoLocaleAll,
+	hasResourceAcl,
+	getUrlAll,
+	getThing,
+	getThingAll,
+	getDatetimeAll,
+	setGroupDefaultAccess,
+	setGroupResourceAccess,
+	getSolidDatasetWithAcl,
+	createAcl,
+	saveAclFor,
+	setAgentDefaultAccess,
+	setAgentResourceAccess,
+	removeThing,
+	createThing,
+	saveSolidDatasetAt,
+	setUrl,
+	setDatetime,
+	setThing,
+	setInteger,
+	asUrl,
+	getInteger,
+	createSolidDataset,
+	createContainerAt,
+	addUrl,
+	removeUrl,
+	getResourceAcl,
+	setStringNoLocale,
+	addStringNoLocale,
+	getPublicResourceAccess,
+	getPublicAccess,
+	setPublicDefaultAccess,
+	setPublicResourceAccess,
+	getGroupAccess,
+	getDatetime
+} from '@inrupt/solid-client';
 import { DCTERMS, RDF, SCHEMA_INRUPT } from '@inrupt/vocab-common-rdf';
 // import {shuffle} from '../lib';
 
@@ -56,12 +100,6 @@ export type MovieData = {
 
 type State = {
 	myWatched?: string[],
-	myUnwatched?: string[],
-	myLiked?: string[],
-	friendWatched?: string[],
-	friendUnwatched?: string[],
-	friendLiked?: string[],
-	recommendedDict?: string[],
 	movies?: {[key: string]: MovieData},
 	loading?: boolean,
 };
@@ -101,11 +139,11 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						const pod = parts.slice(0, parts.length - 2).join('/');
 
 						// getting movies from the user and their friends movies pod
-						const moviesDataset = await getSolidDataset(`${pod}/movies/`, {fetch: session.fetch});
+						const moviesDataset = await getSolidDataset(`${pod}/publications/`, {fetch: session.fetch});
 
 						const movies = getContainedResourceUrlAll(moviesDataset);
 
-						// adds the url to the specfic movie resource to the movies list
+						// adds the url to the specific movie resource to the movies list
 						return movies.map(m => ({...x, url: m}));
 					} catch {
 						return [];
@@ -124,17 +162,25 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						const things = getThingAll(movieDataset);
 
 						// checking if the user has watched the movie
-						const watched = things.some(x => getUrl(x, RDF.type) === 'https://schema.org/WatchAction');
+						// const watched = things.some(x => getUrl(x, RDF.type) === 'https://schema.org/WatchAction');
+						const watched = true;
 
 						// checking if the user has reviewed this movie
-						const review = things.find(x => getUrl(x, RDF.type) === 'https://schema.org/ReviewAction');
+						// const review = things.find(x => getUrl(x, RDF.type) === 'https://schema.org/ReviewAction');
 
-						const urls = getStringNoLocaleAll(movieThing, 'https://schema.org/sameAs');
+						// const urls = getStringNoLocaleAll(movieThing, 'https://schema.org/sameAs');
 
-						const [tmdbUrl] = urls.filter(x => x.startsWith('https://www.themoviedb.org/'));
+						// const [tmdbUrl] = urls.filter(x => x.startsWith('https://www.themoviedb.org/'));
+						const [tmdbUrl] = ["https://www.themoviedb.org/movie/647030"];
 
 						// fetch current movie assets from imdb API
-						const {title, released, icon} = await loadData(tmdbUrl);
+						// const {icon} = await loadData(tmdbUrl);
+
+						const title =  getStringNoLocaleAll(movieThing, 'http://purl.org/dc/terms/title')[0];
+
+						const released =  getDatetimeAll(movieThing, 'http://purl.org/dc/terms/created')[0];
+						const icon = getStringNoLocaleAll(movieThing, 'https://schema.org/image')[0];
+
 
 						return {movie: tmdbUrl, solidUrl: url, type, watched, title, released, image: icon, dataset: movieDataset};
 					})
@@ -153,22 +199,18 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 				for (const {type, ...movie} of movies) {
 					switch (type) {
 						case 'me': {
-							movieDict[movie.movie] = {...movie, me: true, friend: movieDict[movie.movie]?.friend};
+							movieDict[movie.movie] = {...movie, me: true, friend: false};
 
 							// if the movie has been watched & check if the same movie does not already exist in the watched list
 							if (movie.watched && !myWatched.includes(movie.movie)) {
 								myWatched.push(movie.movie);
 							}
-
-							// if the user liked the movie and it doesn't already exist in myLiked
-
 						} break;
 					}
 				}
 
 				globalState.setState({
 					myWatched,
-					myLiked,
 					movies: movieDict,
 				});
 			})();
@@ -216,12 +258,7 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						<Carousel>{(globalState.state.myWatched ?? []).map(x => createCarouselElement(x, 'me'))}</Carousel>
 					</div>
 				}
-				{globalState.state.myLiked && globalState.state.myLiked.length != 0 &&
-					<div>
-						<h3 style="margin-left: 2%;">You enjoyed</h3>
-						<Carousel>{(globalState.state.myLiked ?? []).map(x => createCarouselElement(x, 'me'))}</Carousel>
-					</div>
-				}
+
 
 				{this.state.showLogout && <Logout
 					close={() => {

@@ -8,48 +8,11 @@ import { useAuthentication } from './authentication';
 import { loadData, MediaData, getIds, search } from '../media';
 import {
 	getSolidDataset,
-	deleteSolidDataset,
-	SolidDataset,
-	WithAcl,
-	WithServerResourceInfo,
-	WithAccessibleAcl,
 	getContainedResourceUrlAll,
-	getUrl,
 	getStringNoLocaleAll,
-	hasResourceAcl,
-	getUrlAll,
 	getThing,
 	getThingAll,
 	getDatetimeAll,
-	setGroupDefaultAccess,
-	setGroupResourceAccess,
-	getSolidDatasetWithAcl,
-	createAcl,
-	saveAclFor,
-	setAgentDefaultAccess,
-	setAgentResourceAccess,
-	removeThing,
-	createThing,
-	saveSolidDatasetAt,
-	setUrl,
-	setDatetime,
-	setThing,
-	setInteger,
-	asUrl,
-	getInteger,
-	createSolidDataset,
-	createContainerAt,
-	addUrl,
-	removeUrl,
-	getResourceAcl,
-	setStringNoLocale,
-	addStringNoLocale,
-	getPublicResourceAccess,
-	getPublicAccess,
-	setPublicDefaultAccess,
-	setPublicResourceAccess,
-	getGroupAccess,
-	getDatetime
 } from '@inrupt/solid-client';
 import { DCTERMS, RDF, SCHEMA_INRUPT } from '@inrupt/vocab-common-rdf';
 // import {shuffle} from '../lib';
@@ -86,7 +49,7 @@ const READ_ACCESS = {
 	control: false,
 };
 
-export type MovieData = {
+export type PublicationData = {
 	movie: string,
 	solidUrl: string,
 	watched: boolean,
@@ -100,7 +63,7 @@ export type MovieData = {
 
 type State = {
 	myWatched?: string[],
-	movies?: {[key: string]: MovieData},
+	movies?: {[key: string]: PublicationData},
 	loading?: boolean,
 };
 
@@ -134,36 +97,36 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 
 				const people = [{type: 'me', id: webID}];
 
-				// creates a list of movies including users and their friends movies data
+				// creates a list of publications for the user
 
-				const movieList = (await Promise.all(people.map(async x => {
+				const publicationList = (await Promise.all(people.map(async x => {
 
 					try {
 						const parts = x.id.split('/');
 						const pod = parts.slice(0, parts.length - 2).join('/');
 
-						// getting movies from the user and their friends movies pod
-						const moviesDataset = await getSolidDataset(`${pod}/publications/`, {fetch: session.fetch});
+						// getting publications from the user
+						const publicationDataset = await getSolidDataset(`${pod}/publications/`, {fetch: session.fetch});
 
-						const movies = getContainedResourceUrlAll(moviesDataset);
+						const publications = getContainedResourceUrlAll(publicationDataset);
 
-						// adds the url to the specific movie resource to the movies list
-						return movies.map(m => ({...x, url: m}));
+						// adds the url to the specific movie resource to the publications list
+						return publications.map(m => ({...x, url: m}));
 					} catch {
 						return [];
 					}
 				}))).flat(1);
 
 				const test_start = (new Date()).getTime();
-				const movies = await Promise.all(
-					movieList.map(async ({type, url}) => {
-						// iterating through all movies (user + their friends)
-						const movieDataset = await getSolidDataset(url, {fetch: session.fetch});
+				const publications = await Promise.all(
+					publicationList.map(async ({type, url}) => {
+						// iterating through all publications (user + their friends)
+						const publicationDataset = await getSolidDataset(url, {fetch: session.fetch});
 
-						// fetching the stored metadata for each movie
-						const movieThing = getThing(movieDataset, `${url}#it`)!;
+						// fetching the stored metadata for each ]
+						const publicationThing = getThing(publicationDataset, `${url}#it`)!;
 
-						const things = getThingAll(movieDataset);
+						const things = getThingAll(publicationDataset);
 
 						// checking if the user has watched the movie
 						// const watched = things.some(x => getUrl(x, RDF.type) === 'https://schema.org/WatchAction');
@@ -172,7 +135,7 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						// checking if the user has reviewed this movie
 						// const review = things.find(x => getUrl(x, RDF.type) === 'https://schema.org/ReviewAction');
 
-						// const urls = getStringNoLocaleAll(movieThing, 'https://schema.org/sameAs');
+						// const urls = getStringNoLocaleAll(publicationThing, 'https://schema.org/sameAs');
 
 						// const [tmdbUrl] = urls.filter(x => x.startsWith('https://www.themoviedb.org/'));
 						// const [tmdbUrl] = ["https://www.themoviedb.org/movie/647030"];
@@ -180,30 +143,25 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						// fetch current movie assets from imdb API
 						// const {icon} = await loadData(tmdbUrl);
 
-						const title =  getStringNoLocaleAll(movieThing, 'http://purl.org/dc/terms/title')[0];
+						const title =  getStringNoLocaleAll(publicationThing, 'http://purl.org/dc/terms/title')[0];
 
-						const released =  getDatetimeAll(movieThing, 'http://purl.org/dc/terms/created')[0];
-						const icon = getStringNoLocaleAll(movieThing, 'https://schema.org/image')[0];
+						const released =  getDatetimeAll(publicationThing, 'http://purl.org/dc/terms/created')[0];
+						const icon = getStringNoLocaleAll(publicationThing, 'https://schema.org/image')[0];
 
 
-						return {movie: url, solidUrl: url, type, watched, title, released, image: icon, dataset: movieDataset};
+						return {movie: url, solidUrl: url, type, watched, title, released, image: icon, dataset: publicationDataset};
 					})
 				);
 				console.log(((new Date()).getTime() - test_start)/1000 + ' seconds')
 
-				const movieDict: {[key: string]: MovieData} = {};
+				const pubDict: {[key: string]: PublicationData} = {};
 				const myWatched: string[] = [];
-				const myUnwatched: string[] = [];
-				const myLiked: string[] = [];
-				const friendWatched: string[] = [];
-				const friendUnwatched: string[] = [];
-				const friendLiked: string[] = [];
-				const recommendedDict: string[] = [];
 
-				for (const {type, ...movie} of movies) {
+
+				for (const {type, ...movie} of publications) {
 					switch (type) {
 						case 'me': {
-							movieDict[movie.movie] = {...movie, me: true, friend: false};
+							pubDict[movie.movie] = {...movie, me: true, friend: false};
 
 							// if the movie has been watched & check if the same movie does not already exist in the watched list
 							if (movie.watched && !myWatched.includes(movie.movie)) {
@@ -215,7 +173,7 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 
 				globalState.setState({
 					myWatched,
-					movies: movieDict,
+					movies: pubDict,
 				});
 			})();
 		}

@@ -114,8 +114,10 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 	public render({globalState}: Props<{globalState: {state: State, setState: (state: Partial<State>) => void}}>): VNode {
 		const session = useAuthentication();
 		if (!session) return <div />;
-
+		//webID: https://testusermovie.solidcommunity.net/profile/card#me
 		const webID = session.info.webId!;
+
+		// parts: https://testusermovie.solidcommunity.net/
 		const parts = webID.split('/');
 		const pod = parts.slice(0, parts.length - 2).join('/');
 
@@ -133,7 +135,9 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 				const people = [{type: 'me', id: webID}];
 
 				// creates a list of movies including users and their friends movies data
+
 				const movieList = (await Promise.all(people.map(async x => {
+
 					try {
 						const parts = x.id.split('/');
 						const pod = parts.slice(0, parts.length - 2).join('/');
@@ -171,7 +175,7 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						// const urls = getStringNoLocaleAll(movieThing, 'https://schema.org/sameAs');
 
 						// const [tmdbUrl] = urls.filter(x => x.startsWith('https://www.themoviedb.org/'));
-						const [tmdbUrl] = ["https://www.themoviedb.org/movie/647030"];
+						// const [tmdbUrl] = ["https://www.themoviedb.org/movie/647030"];
 
 						// fetch current movie assets from imdb API
 						// const {icon} = await loadData(tmdbUrl);
@@ -182,7 +186,7 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 						const icon = getStringNoLocaleAll(movieThing, 'https://schema.org/image')[0];
 
 
-						return {movie: tmdbUrl, solidUrl: url, type, watched, title, released, image: icon, dataset: movieDataset};
+						return {movie: url, solidUrl: url, type, watched, title, released, image: icon, dataset: movieDataset};
 					})
 				);
 				console.log(((new Date()).getTime() - test_start)/1000 + ' seconds')
@@ -229,7 +233,7 @@ export default class DiscoverPane extends Component<{globalState: {state: any}}>
 							title={title}
 							subtitle={released.toLocaleDateString('en-GB', DATE_FORMAT)}
 							image={image}
-							redirect={`${HOMEPAGE}/view?url=${movie}`}
+							// redirect={`${HOMEPAGE}/view?url=${movie}`}
 						/>
 					);
 				}

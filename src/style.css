@@ -2,7 +2,7 @@
 @import url("https://fonts.googleapis.com/css?family=Anton");
 
 body {
-	background-color: #000;
+	background-color: #FFFFFF;
 	font-family: 'Open Sans', sans-serif;
 	margin: 0px;
 }
@@ -52,17 +52,17 @@ body {
 
 .carousel-title {
 	margin-left: 1vw;
-	color: #000;
+	color: #ffffff;
 }
 
 .carousel-subtitle {
 	margin-left: 1vw;
-	color: #222;
+	color: #ffffff;
 }
 
 .carousel-left, .carousel-right {
-	position: absolute;
-	width: 40px;
+	position: relative;
+	width: 200px;
 	height: 40px;
 	background: none;
 	border: none;
@@ -385,20 +385,21 @@ right: 5px;
 	width: 100%;
 	height: 100vh;
 	position: relative;
-	background: url('assets/background.jpg') no-repeat center center/cover;
+	/*background: url('assets/background.jpg') no-repeat center center/cover;*/
+	  background: none;
 }
 
-.showcase::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 1;
-	background: rgba(0, 0, 0, 0.65);
-	box-shadow: inset 30px 10px 150px #000000;
-}
+/*.showcase::after {*/
+/*	content: '';*/
+/*	position: absolute;*/
+/*	top: 0;*/
+/*	left: 0;*/
+/*	width: 100%;*/
+/*	height: 100%;*/
+/*	z-index: 1;*/
+/*	background: rgba(0, 0, 0, 0.65);*/
+/*	box-shadow: inset 30px 10px 150px #000000;*/
+/*}*/
 
 .logo {
 	position: relative;
@@ -461,8 +462,8 @@ right: 5px;
 	width: 100%;
 	height: 50px;
 	border-radius: 5px;
-	background: #5765FF;
-	color: #fff;
+	background: #FFD700;
+	color: #000000;
 	font-size: inherit;
 	font-weight: bold;
 	border: none;
@@ -475,8 +476,8 @@ right: 5px;
 	width: 18%;
 	height: 56px;
 	border-radius: 5px;
-	background: #5765FF;
-	color: #fff;
+	background: #FFD700;
+	color: #000000;
 	font-size: inherit;
 	font-weight: bold;
 	border: none;
@@ -489,8 +490,8 @@ right: 5px;
 .login-page {
 	font-family: 'Arial', sans-serif;
 	-webkit-font-smoothing: antialiased;
-	background: #000;
-	color: #999;
+	background: #FFFFFF;
+	color: #FFFFFF;
 	height: fit-content;
 	overflow-x: hidden;
 }
@@ -498,7 +499,7 @@ right: 5px;
 .movies-page {
 	font-family: 'Arial', sans-serif;
 	-webkit-font-smoothing: antialiased;
-	background: #000;
+	background: #FFFFFF;
 	color: #fff;
 	height: fit-content;
 	overflow-x: hidden;
